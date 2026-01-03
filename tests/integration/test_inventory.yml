@@ -1,0 +1,20 @@
+---
+# Integration test inventory configuration
+# Usage: ansible-inventory -i test_inventory.yml --list
+
+plugin: deepthought_solutions.structurizr_inventory.structurizr
+source: ../fixtures/sample_workspace.json
+
+# Include all node types
+include_infrastructure_nodes: true
+include_software_system_instances: false
+include_container_instances: false
+
+# Grouping options
+group_by_environment: true
+group_by_tags: true
+group_by_technology: true
+group_by_hierarchy: true
+
+# Use node name as host identifier
+host_identifier: name

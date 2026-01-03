@@ -1,0 +1,8 @@
+---
+# Integration test - Production environment only
+plugin: deepthought_solutions.structurizr_inventory.structurizr
+source: ../fixtures/sample_workspace.json
+environment: Production
+group_by_environment: true
+group_by_tags: true
+group_by_hierarchy: true

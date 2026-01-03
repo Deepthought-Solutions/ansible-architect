@@ -1,0 +1,199 @@
+{
+  "id": 1,
+  "name": "Sample Infrastructure",
+  "description": "Sample Structurizr workspace for testing the Ansible inventory plugin",
+  "model": {
+    "softwareSystems": [
+      {
+        "id": "1",
+        "name": "Web Application",
+        "description": "The main web application",
+        "tags": "Element,Software System"
+      }
+    ],
+    "deploymentNodes": [
+      {
+        "id": "100",
+        "name": "Production",
+        "environment": "Production",
+        "description": "Production environment",
+        "tags": "Element,Deployment Node",
+        "children": [
+          {
+            "id": "110",
+            "name": "EU-West",
+            "description": "European datacenter",
+            "technology": "AWS",
+            "tags": "Element,Deployment Node,EU",
+            "properties": [
+              {"name": "region", "value": "eu-west-1"}
+            ],
+            "children": [
+              {
+                "id": "111",
+                "name": "web-prod-01",
+                "description": "Primary web server",
+                "technology": "Ubuntu 22.04",
+                "tags": "Element,Deployment Node,Web,Primary",
+                "properties": [
+                  {"name": "ansible_host", "value": "10.0.1.10"},
+                  {"name": "ansible_user", "value": "ubuntu"},
+                  {"name": "fqdn", "value": "web-prod-01.example.com"},
+                  {"name": "instance_type", "value": "t3.large"}
+                ],
+                "infrastructureNodes": [],
+                "softwareSystemInstances": [],
+                "containerInstances": []
+              },
+              {
+                "id": "112",
+                "name": "web-prod-02",
+                "description": "Secondary web server",
+                "technology": "Ubuntu 22.04",
+                "tags": "Element,Deployment Node,Web,Secondary",
+                "properties": [
+                  {"name": "ansible_host", "value": "10.0.1.11"},
+                  {"name": "ansible_user", "value": "ubuntu"},
+                  {"name": "fqdn", "value": "web-prod-02.example.com"},
+                  {"name": "instance_type", "value": "t3.large"}
+                ],
+                "infrastructureNodes": [],
+                "softwareSystemInstances": [],
+                "containerInstances": []
+              },
+              {
+                "id": "113",
+                "name": "db-prod-01",
+                "description": "Primary database server",
+                "technology": "PostgreSQL 15",
+                "tags": "Element,Deployment Node,Database,Primary",
+                "properties": [
+                  {"name": "ansible_host", "value": "10.0.2.10"},
+                  {"name": "ansible_user", "value": "admin"},
+                  {"name": "fqdn", "value": "db-prod-01.example.com"},
+                  {"name": "instance_type", "value": "r5.xlarge"},
+                  {"name": "db_port", "value": "5432"}
+                ],
+                "infrastructureNodes": [],
+                "softwareSystemInstances": [],
+                "containerInstances": []
+              }
+            ],
+            "infrastructureNodes": [
+              {
+                "id": "115",
+                "name": "lb-prod-01",
+                "description": "Application Load Balancer",
+                "technology": "AWS ALB",
+                "tags": "Element,Infrastructure Node,LoadBalancer",
+                "properties": [
+                  {"name": "ansible_host", "value": "lb-prod-01.eu-west-1.elb.amazonaws.com"},
+                  {"name": "target_port", "value": "443"}
+                ]
+              }
+            ],
+            "softwareSystemInstances": [],
+            "containerInstances": []
+          },
+          {
+            "id": "120",
+            "name": "US-East",
+            "description": "US datacenter",
+            "technology": "AWS",
+            "tags": "Element,Deployment Node,US",
+            "properties": [
+              {"name": "region", "value": "us-east-1"}
+            ],
+            "children": [
+              {
+                "id": "121",
+                "name": "web-prod-03",
+                "description": "US web server",
+                "technology": "Ubuntu 22.04",
+                "tags": "Element,Deployment Node,Web",
+                "properties": [
+                  {"name": "ansible_host", "value": "10.1.1.10"},
+                  {"name": "ansible_user", "value": "ubuntu"},
+                  {"name": "fqdn", "value": "web-prod-03.example.com"},
+                  {"name": "instance_type", "value": "t3.large"}
+                ],
+                "infrastructureNodes": [],
+                "softwareSystemInstances": [],
+                "containerInstances": []
+              }
+            ],
+            "infrastructureNodes": [],
+            "softwareSystemInstances": [],
+            "containerInstances": []
+          }
+        ],
+        "infrastructureNodes": [],
+        "softwareSystemInstances": [],
+        "containerInstances": []
+      },
+      {
+        "id": "200",
+        "name": "Staging",
+        "environment": "Staging",
+        "description": "Staging environment",
+        "tags": "Element,Deployment Node",
+        "children": [
+          {
+            "id": "210",
+            "name": "EU-West",
+            "description": "European datacenter - Staging",
+            "technology": "AWS",
+            "tags": "Element,Deployment Node,EU",
+            "properties": [
+              {"name": "region", "value": "eu-west-1"}
+            ],
+            "children": [
+              {
+                "id": "211",
+                "name": "web-staging-01",
+                "description": "Staging web server",
+                "technology": "Ubuntu 22.04",
+                "tags": "Element,Deployment Node,Web",
+                "properties": [
+                  {"name": "ansible_host", "value": "10.10.1.10"},
+                  {"name": "ansible_user", "value": "ubuntu"},
+                  {"name": "fqdn", "value": "web-staging-01.example.com"},
+                  {"name": "instance_type", "value": "t3.medium"}
+                ],
+                "infrastructureNodes": [],
+                "softwareSystemInstances": [],
+                "containerInstances": []
+              },
+              {
+                "id": "212",
+                "name": "db-staging-01",
+                "description": "Staging database server",
+                "technology": "PostgreSQL 15",
+                "tags": "Element,Deployment Node,Database",
+                "properties": [
+                  {"name": "ansible_host", "value": "10.10.2.10"},
+                  {"name": "ansible_user", "value": "admin"},
+                  {"name": "fqdn", "value": "db-staging-01.example.com"},
+                  {"name": "instance_type", "value": "r5.large"},
+                  {"name": "db_port", "value": "5432"}
+                ],
+                "infrastructureNodes": [],
+                "softwareSystemInstances": [],
+                "containerInstances": []
+              }
+            ],
+            "infrastructureNodes": [],
+            "softwareSystemInstances": [],
+            "containerInstances": []
+          }
+        ],
+        "infrastructureNodes": [],
+        "softwareSystemInstances": [],
+        "containerInstances": []
+      }
+    ]
+  },
+  "views": {},
+  "documentation": {},
+  "configuration": {}
+}

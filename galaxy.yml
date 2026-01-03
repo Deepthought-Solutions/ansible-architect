@@ -1,0 +1,28 @@
+---
+namespace: deepthought_solutions
+name: structurizr_inventory
+version: 0.1.0
+readme: README.md
+authors:
+  - Nicolas Karageuzian <nico@ds.local>
+description: Ansible tools for structurizr as a datasource / doc generation
+license:
+  - GPL-3.0-or-later
+license_file: LICENSE
+tags:
+  - structurizr
+  - documentation
+  - inventory
+  - architecture
+dependencies: {}
+repository: https://github.com/deepthought-solutions/ansible-structurizr-inventory
+documentation: https://github.com/deepthought-solutions/ansible-structurizr-inventory
+homepage: https://github.com/deepthought-solutions/ansible-structurizr-inventory
+issues: https://github.com/deepthought-solutions/ansible-structurizr-inventory/issues
+build_ignore:
+  - .git
+  - .gitignore
+  - .pre-commit-config.yaml
+  - molecule
+  - tests
+  - "*.tar.gz"
