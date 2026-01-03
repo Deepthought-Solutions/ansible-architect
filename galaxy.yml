@@ -1,11 +1,11 @@
 ---
 namespace: deepthought_solutions
-name: structurizr_inventory
+name: ansible_architect
 version: 0.1.0
 readme: README.md
 authors:
   - Nicolas Karageuzian <nico@ds.local>
-description: Ansible tools for structurizr as a datasource / doc generation
+description: Ansible tools for an infrastructure architect
 license:
   - GPL-3.0-or-later
 license_file: LICENSE
@@ -15,10 +15,10 @@ tags:
   - inventory
   - architecture
 dependencies: {}
-repository: https://github.com/deepthought-solutions/ansible-structurizr-inventory
-documentation: https://github.com/deepthought-solutions/ansible-structurizr-inventory
-homepage: https://github.com/deepthought-solutions/ansible-structurizr-inventory
-issues: https://github.com/deepthought-solutions/ansible-structurizr-inventory/issues
+repository: https://github.com/deepthought-solutions/ansible-architect
+documentation: https://github.com/deepthought-solutions/ansible-architect
+homepage: https://github.com/deepthought-solutions/ansible-architect
+issues: https://github.com/deepthought-solutions/ansible-architect/issues
 build_ignore:
   - .git
   - .gitignore

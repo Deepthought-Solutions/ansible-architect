@@ -1,10 +1,11 @@
-# Structurizr Inventory Collection
+# Ansible Architect Collection
 
-An Ansible collection that generates dynamic inventory from Structurizr architecture models.
+An Ansible collection with various tools useful for an infrastructure architect with resiliency, compliance and quality as goals.
 
 ## Description
 
-This collection provides an inventory plugin that transforms Structurizr DSL/JSON exports into Ansible inventory. It bridges the gap between "Architecture as Code" (C4 Model) and "Infrastructure as Code" (Ansible).
+This collection provides :
+ - an inventory plugin that transforms Structurizr DSL/JSON exports into Ansible inventory. It bridges the gap between "Architecture as Code" (C4 Model) and "Infrastructure as Code" (Ansible).
 
 ## Requirements
 
@@ -15,15 +16,15 @@ This collection provides an inventory plugin that transforms Structurizr DSL/JSO
 ## Installation
 
 ```bash
-ansible-galaxy collection install deepthought_solutions.structurizr_inventory
+ansible-galaxy collection install deepthought_solutions.ansible_architect
 ```
 
 Or from source:
 
 ```bash
-cd ansible-structurizr-inventory
+cd ansible-architect
 ansible-galaxy collection build
-ansible-galaxy collection install deepthought_solutions-structurizr_inventory-0.1.0.tar.gz
+ansible-galaxy collection install deepthought_solutions-ansible_architect-0.1.0.tar.gz
 ```
 
 ## Usage
@@ -38,7 +39,7 @@ structurizr-cli export -workspace workspace.dsl -format json -output workspace.j
 
 ```yaml
 # inventory.yml
-plugin: deepthought_solutions.structurizr_inventory.structurizr
+plugin: deepthought_solutions.ansible_architect.structurizr
 source: ./workspace.json
 
 # Optional: Filter by environment
