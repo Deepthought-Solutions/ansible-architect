@@ -15,6 +15,15 @@ description:
     - Parses DeploymentNodes and InfrastructureNodes to create hosts and groups.
     - Maps Structurizr properties to Ansible host variables.
     - Supports filtering by environment and tags.
+    - Supports both list-format and dict-format properties from Structurizr exports.
+notes:
+    - By default, only leaf deployment nodes (those without children) become hosts.
+    - To force a parent deployment node to also be a host, add the property
+      C(ansible_force_host=true) in your Structurizr DSL.
+    - This is useful for hypervisors or servers that contain child VMs but are
+      themselves manageable hosts.
+    - Properties starting with C(ansible_) are passed through directly as Ansible
+      connection variables.
 author:
     - Nicolas Karageuzian (@nkarageuzian)
 version_added: "0.1.0"
@@ -139,8 +148,30 @@ strict: false
 compose:
   ansible_host: structurizr_ip_address
 groups:
-  webservers: "'web' in tags"
+  webservers: "'Web' in structurizr_tags"
   databases: "technology == 'PostgreSQL'"
+  hypervisors: "'Hypervisor' in structurizr_tags"
+
+# Example Structurizr DSL with ansible_force_host
+# Use this property to make a parent node (with children) also appear as a host:
+#
+#   deploymentNode "hypervisor-01" "KVM Host" "Debian 12" {
+#       tags "Physical Box,Hypervisor"
+#       properties {
+#           "ansible_force_host" "true"
+#           "ansible_host" "192.168.1.10"
+#       }
+#
+#       deploymentNode "vm-01" "Web Server" "Ubuntu 22.04" {
+#           tags "VM"
+#           properties {
+#               "ansible_host" "10.0.0.10"
+#           }
+#       }
+#   }
+#
+# Result: Both hypervisor-01 and vm-01 become Ansible hosts.
+# hypervisor-01 is also a group containing vm-01.
 """
 
 import json
@@ -361,8 +392,12 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 child, environment, current_hierarchy, new_parent_groups
             )
 
-        # Add leaf deployment nodes as hosts
-        if self._is_leaf_deployment_node(node):
+        # Check if node should be forced as host (even if it has children)
+        properties = self._normalize_properties(node)
+        force_as_host = properties.get("ansible_force_host", "false").lower() == "true"
+
+        # Add as host if forced OR if leaf node
+        if force_as_host or self._is_leaf_deployment_node(node):
             self._add_host_to_inventory(
                 node, environment, current_hierarchy, new_parent_groups
             )
@@ -401,13 +436,9 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             if filter_environment and env_name != filter_environment:
                 continue
 
-            # Process all deployment nodes in this environment
-            for node in env_node.get("children", [env_node]):
-                if node == env_node and not env_node.get("children"):
-                    # Single-level deployment node
-                    self._process_deployment_node(node, env_name)
-                elif node != env_node:
-                    self._process_deployment_node(node, env_name)
+            # Process this top-level deployment node
+            # (it will recursively process children and handle ansible_force_host)
+            self._process_deployment_node(env_node, env_name)
 
     def parse(self, inventory, loader, path, cache=True):
         """Parse the inventory source and populate inventory."""

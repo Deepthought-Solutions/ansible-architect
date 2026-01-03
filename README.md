@@ -116,6 +116,41 @@ The plugin generates:
   - `tech_<technology>`: Hosts grouped by technology
   - Hierarchy groups based on deployment node structure
 
+## Special Properties
+
+### `ansible_force_host`
+
+By default, only leaf deployment nodes (those without children) become Ansible hosts. Parent nodes become groups only.
+
+To make a parent node **also** appear as a host (while still being a group for its children), add the `ansible_force_host` property:
+
+```dsl
+deploymentNode "hypervisor-01" "KVM Host" "Debian 12" {
+    tags "Physical Box,Hypervisor"
+    properties {
+        "ansible_force_host" "true"
+        "ansible_host" "192.168.1.10"
+    }
+
+    deploymentNode "vm-01" "Web Server" "Ubuntu 22.04" {
+        tags "VM"
+        properties {
+            "ansible_host" "10.0.0.10"
+        }
+    }
+}
+```
+
+**Result:**
+- `hypervisor-01` becomes both a host AND a group
+- `vm-01` becomes a host and is a member of the `hypervisor_01` group
+- Both are manageable via Ansible
+
+**Use cases:**
+- Hypervisors that host VMs but need direct management
+- Kubernetes nodes that contain pods
+- Any parent infrastructure that is itself a manageable host
+
 ## Host Variables
 
 The plugin automatically maps:

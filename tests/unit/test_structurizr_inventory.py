@@ -322,3 +322,190 @@ class TestReadSource:
             mock_read.return_value = {'model': {}}
             inventory_plugin._read_source('/path/to/workspace.json')
             mock_read.assert_called_once_with('/path/to/workspace.json')
+
+
+class TestNormalizeProperties:
+    """Tests for property normalization (list vs dict format)."""
+
+    def test_normalize_properties_list_format(self, inventory_plugin):
+        """Test normalization of list-format properties."""
+        node = {
+            'name': 'test-node',
+            'properties': [
+                {'name': 'ansible_host', 'value': '10.0.0.1'},
+                {'name': 'custom_var', 'value': 'custom_value'}
+            ]
+        }
+        result = inventory_plugin._normalize_properties(node)
+        assert result == {'ansible_host': '10.0.0.1', 'custom_var': 'custom_value'}
+
+    def test_normalize_properties_dict_format(self, inventory_plugin):
+        """Test normalization of dict-format properties (Structurizr CLI export)."""
+        node = {
+            'name': 'test-node',
+            'properties': {
+                'ansible_host': '10.0.0.1',
+                'custom_var': 'custom_value'
+            }
+        }
+        result = inventory_plugin._normalize_properties(node)
+        assert result == {'ansible_host': '10.0.0.1', 'custom_var': 'custom_value'}
+
+    def test_normalize_properties_empty(self, inventory_plugin):
+        """Test normalization with no properties."""
+        node = {'name': 'test-node'}
+        result = inventory_plugin._normalize_properties(node)
+        assert result == {}
+
+    def test_normalize_properties_empty_list(self, inventory_plugin):
+        """Test normalization with empty list."""
+        node = {'name': 'test-node', 'properties': []}
+        result = inventory_plugin._normalize_properties(node)
+        assert result == {}
+
+    def test_normalize_properties_empty_dict(self, inventory_plugin):
+        """Test normalization with empty dict."""
+        node = {'name': 'test-node', 'properties': {}}
+        result = inventory_plugin._normalize_properties(node)
+        assert result == {}
+
+
+class TestForceHostProperty:
+    """Tests for ansible_force_host property functionality."""
+
+    def test_force_host_with_children(self, inventory_plugin, mock_options):
+        """Test that ansible_force_host=true makes parent node a host."""
+        hosts_added = []
+
+        def track_add_host(host):
+            hosts_added.append(host)
+
+        inventory_plugin.inventory.add_host = track_add_host
+        inventory_plugin.inventory.add_group = MagicMock()
+        inventory_plugin.inventory.add_child = MagicMock()
+
+        # Parent node with children and ansible_force_host=true
+        workspace = {
+            'model': {
+                'deploymentNodes': [{
+                    'id': '1',
+                    'name': 'hypervisor-01',
+                    'environment': 'Production',
+                    'properties': {
+                        'ansible_force_host': 'true',
+                        'ansible_host': '192.168.1.10'
+                    },
+                    'children': [{
+                        'id': '2',
+                        'name': 'vm-01',
+                        'properties': {
+                            'ansible_host': '10.0.0.1'
+                        }
+                    }]
+                }]
+            }
+        }
+
+        with patch.object(inventory_plugin, 'get_option', side_effect=lambda x: mock_options.get(x)):
+            inventory_plugin._parse_workspace(workspace)
+
+        # Both parent (forced) and child (leaf) should be hosts
+        assert 'hypervisor-01' in hosts_added
+        assert 'vm-01' in hosts_added
+
+    def test_force_host_false_with_children(self, inventory_plugin, mock_options):
+        """Test that parent without force_host is not a host."""
+        hosts_added = []
+
+        def track_add_host(host):
+            hosts_added.append(host)
+
+        inventory_plugin.inventory.add_host = track_add_host
+        inventory_plugin.inventory.add_group = MagicMock()
+        inventory_plugin.inventory.add_child = MagicMock()
+
+        # Parent node with children but no ansible_force_host
+        workspace = {
+            'model': {
+                'deploymentNodes': [{
+                    'id': '1',
+                    'name': 'datacenter',
+                    'environment': 'Production',
+                    'children': [{
+                        'id': '2',
+                        'name': 'server-01',
+                        'properties': {'ansible_host': '10.0.0.1'}
+                    }]
+                }]
+            }
+        }
+
+        with patch.object(inventory_plugin, 'get_option', side_effect=lambda x: mock_options.get(x)):
+            inventory_plugin._parse_workspace(workspace)
+
+        # Only child should be a host
+        assert 'datacenter' not in hosts_added
+        assert 'server-01' in hosts_added
+
+    def test_force_host_case_insensitive(self, inventory_plugin, mock_options):
+        """Test that ansible_force_host is case-insensitive."""
+        hosts_added = []
+
+        def track_add_host(host):
+            hosts_added.append(host)
+
+        inventory_plugin.inventory.add_host = track_add_host
+        inventory_plugin.inventory.add_group = MagicMock()
+        inventory_plugin.inventory.add_child = MagicMock()
+
+        workspace = {
+            'model': {
+                'deploymentNodes': [{
+                    'id': '1',
+                    'name': 'hypervisor-01',
+                    'environment': 'Production',
+                    'properties': {'ansible_force_host': 'TRUE'},  # uppercase
+                    'children': [{'id': '2', 'name': 'vm-01'}]
+                }]
+            }
+        }
+
+        with patch.object(inventory_plugin, 'get_option', side_effect=lambda x: mock_options.get(x)):
+            inventory_plugin._parse_workspace(workspace)
+
+        assert 'hypervisor-01' in hosts_added
+
+
+class TestSelfReferentialGroupPrevention:
+    """Tests for preventing self-referential group issues."""
+
+    def test_host_not_added_to_same_name_group(self, inventory_plugin, mock_options):
+        """Test that a host is not added to a group with the same name."""
+        add_child_calls = []
+
+        def track_add_child(group, child):
+            add_child_calls.append((group, child))
+
+        inventory_plugin.inventory.add_host = MagicMock()
+        inventory_plugin.inventory.add_group = MagicMock()
+        inventory_plugin.inventory.add_child = track_add_child
+        inventory_plugin.inventory.set_variable = MagicMock()
+
+        # Single leaf node that would create a group with same name
+        workspace = {
+            'model': {
+                'deploymentNodes': [{
+                    'id': '1',
+                    'name': 'mainwork',
+                    'environment': 'Production',
+                    'properties': {}
+                }]
+            }
+        }
+
+        with patch.object(inventory_plugin, 'get_option', side_effect=lambda x: mock_options.get(x)):
+            inventory_plugin._parse_workspace(workspace)
+
+        # Should not have any self-referential calls
+        for group, child in add_child_calls:
+            assert group != child, f"Self-referential: {group} -> {child}"
